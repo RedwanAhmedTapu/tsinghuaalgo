@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tsinghua's Revolutionary Shortest Path Algorithm</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: black;
+            margin-bottom: 40px;
+            padding: 40px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .section {
+            background: white;
+            margin: 30px 0;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+        }
+
+        .section h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .algorithm-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .algorithm-box {
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .dijkstra-box {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            border: 2px solid #ff6b6b;
+        }
+
+        .tsinghua-box {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            border: 2px solid #4ecdc4;
+        }
+
+        .algorithm-box:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .complexity {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.7);
+        }
+
+        .graph-container {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .graph {
+            width: 400px;
+            height: 300px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            margin: 0 15px;
+            background: #f8f9fa;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .node {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .node:hover {
+            transform: scale(1.2);
+        }
+
+        .edge {
+            position: absolute;
+            background: #666;
+            height: 2px;
+            transform-origin: left center;
+            z-index: 1;
+        }
+
+        .edge-weight {
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        .breakthrough-points {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .breakthrough-point {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 5px solid #ff6b6b;
+            transition: all 0.3s ease;
+        }
+
+        .breakthrough-point:hover {
+            transform: translateX(10px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .breakthrough-point h3 {
+            color: #d63031;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+            margin: 30px 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(to bottom, #667eea, #764ba2);
+            transform: translateX(-50%);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin: 30px 0;
+            padding: 0 30px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 20px;
+            width: 16px;
+            height: 16px;
+            background: #667eea;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+        }
+
+        .timeline-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            width: 45%;
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content {
+            margin-left: 55%;
+        }
+
+        .timeline-item:nth-child(even) .timeline-content {
+            margin-right: 55%;
+        }
+
+        .demo-controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .demo-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .demo-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .performance-chart {
+            height: 300px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            padding: 20px;
+            margin: 30px 0;
+        }
+
+        .bar {
+            width: 60px;
+            background: linear-gradient(to top, #ff6b6b, #feca57);
+            border-radius: 5px 5px 0 0;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            position: relative;
+            transition: all 0.5s ease;
+        }
+
+        .bar:hover {
+            transform: scale(1.1);
+        }
+
+        .bar::after {
+            content: attr(data-label);
+            position: absolute;
+            bottom: -25px;
+            font-size: 12px;
+            color: #333;
+            white-space: nowrap;
+        }
+
+        .new-bar {
+            background: linear-gradient(to top, #4ecdc4, #44a08d) !important;
+        }
+
+        .algorithm-demo {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .demo-section {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .demo-section h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #495057;
+            font-size: 1.3rem;
+        }
+
+        .demo-graph {
+            width: 100%;
+            height: 300px;
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .demo-stats {
+            display: flex;
+            justify-content: space-between;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+            flex: 1;
+            min-width: 120px;
+            margin: 5px;
+        }
+
+        .stat-label {
+            display: block;
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .code-section {
+            margin-top: 20px;
+        }
+
+        .code-section h4 {
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .live-code {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            line-height: 1.4;
+        }
+
+        .code-highlight {
+            background: #4a5568;
+            color: #ffd700;
+            padding: 2px 4px;
+            border-radius: 3px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .graph-node {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 12px;
+            border: 3px solid #333;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .graph-node.source {
+            background: #28a745;
+            border-color: #1e7e34;
+            box-shadow: 0 0 20px rgba(40, 167, 69, 0.6);
+        }
+
+        .graph-node.unvisited {
+            background: #6c757d;
+            border-color: #495057;
+        }
+
+        .graph-node.frontier {
+            background: #ffc107;
+            border-color: #d39e00;
+            animation: bounce 1s infinite;
+        }
+
+        .graph-node.visited {
+            background: #17a2b8;
+            border-color: #117a8b;
+        }
+
+        .graph-node.clustered {
+            background: #e83e8c;
+            border-color: #c51e80;
+            box-shadow: 0 0 15px rgba(232, 62, 140, 0.5);
+        }
+
+        .graph-node.processing {
+            background: #dc3545;
+            border-color: #bd2130;
+            animation: spin 1s infinite;
+            box-shadow: 0 0 25px rgba(220, 53, 69, 0.8);
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg) scale(1.3); }
+            100% { transform: rotate(360deg) scale(1.3); }
+        }
+
+        .graph-edge {
+            position: absolute;
+            background: #666;
+            height: 2px;
+            transform-origin: left center;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .graph-edge.active {
+            background: #28a745;
+            height: 4px;
+            box-shadow: 0 0 10px rgba(40, 167, 69, 0.6);
+        }
+
+        .graph-edge.explored {
+            background: #17a2b8;
+            height: 3px;
+        }
+
+        .edge-weight {
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 10px;
+            font-weight: bold;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .cluster-highlight {
+            position: absolute;
+            border: 3px dashed #e83e8c;
+            border-radius: 10px;
+            background: rgba(232, 62, 140, 0.1);
+            z-index: 0;
+            animation: clusterPulse 2s infinite;
+        }
+
+        @keyframes clusterPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+
+        .algorithm-legend {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #333;
+        }
+
+        .legend-source { background: #28a745; }
+        .legend-unvisited { background: #6c757d; }
+        .legend-frontier { background: #ffc107; }
+        .legend-visited { background: #17a2b8; }
+        .legend-clustered { background: #e83e8c; }
+        .legend-processing { background: #dc3545; }
+
+        @media (max-width: 768px) {
+            .algorithm-comparison {
+                grid-template-columns: 1fr;
+            }
+            
+            .graph-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .timeline::before {
+                left: 30px;
+            }
+            
+            .timeline-content {
+                width: calc(100% - 60px);
+                margin-left: 60px !important;
+                margin-right: 0 !important;
+            }
+            
+            .timeline-item::before {
+                left: 30px;
+            }
+        }
+
+        .highlight {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Tsinghua's Revolutionary Shortest Path Algorithm</h1>
+            <p>Breaking the 40-Year Sorting Barrier - STOC 2025 Best Paper Award</p>
+        </div>
+
+        <div class="section">
+            <h2>🏆 The Breakthrough</h2>
+            <p>Professor Ran Duan's team at Tsinghua University has achieved what many thought impossible: breaking the 40-year-old sorting barrier in shortest path algorithms. Their new approach runs in <strong>O(m log²/³ n)</strong> time, surpassing Dijkstra's algorithm on sparse graphs for the first time since 1984.</p>
+            
+            <div class="highlight">
+                <strong>🎯 Key Achievement:</strong> First algorithm to break the O(m + n log n) time bound of Dijkstra's algorithm on sparse graphs, proving that Dijkstra's algorithm is not optimal for Single-Source Shortest Path (SSSP) problems.
+            </div>
+
+            <div class="algorithm-legend">
+                <div class="legend-item">
+                    <div class="legend-color legend-source"></div>
+                    <span>Source Node</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color legend-unvisited"></div>
+                    <span>Unvisited</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color legend-frontier"></div>
+                    <span>Frontier</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color legend-visited"></div>
+                    <span>Visited</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color legend-clustered"></div>
+                    <span>Clustered (Tsinghua)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color legend-processing"></div>
+                    <span>Currently Processing</span>
+                </div>
+            </div>
+        </div>
+
+      <div class="section">
+  <h2>⚡ Algorithm Comparison</h2>
+  
+  <p><strong>What’s the problem here?</strong></p>
+  <p>
+    The task is simple to state: given a graph (a collection of nodes and edges with weights), 
+    how do you find the shortest path from one node to all others?
+  </p>
+
+  <ul>
+    <li><strong>Dijkstra’s algorithm (classic):</strong> Runs in O(m + n log n) time, 
+    where n = number of nodes and m = number of edges. 
+    This efficiency comes from combining graph exploration with a priority queue (which involves sorting operations).</li>
+    <li>For almost 40 years, no one could break through the “sorting barrier” — 
+    the log n term that comes from sorting or managing the priority queue.</li>
+  </ul>
+
+  <div class="algorithm-comparison">
+    <div class="algorithm-box dijkstra-box">
+      <h3>Dijkstra's Algorithm (1956)</h3>
+      <div class="complexity">O(m + n log n)</div>
+      <p><strong>Approach:</strong> Sorts nodes by distance, always processes closest node first</p>
+      <p><strong>Limitation:</strong> Constrained by sorting barrier</p>
+      <p><strong>Used for:</strong> 40+ years as the gold standard</p>
+    </div>
+
+    <div class="algorithm-box tsinghua-box">
+      <h3>Tsinghua's New Algorithm (2025)</h3>
+      <div class="complexity">O(m log<sup>2/3</sup> n)</div>
+      <p><strong>Approach:</strong> Clusters frontier nodes, uses Bellman-Ford strategically</p>
+      <p><strong>Innovation:</strong> Breaks sorting barrier completely</p>
+      <p><strong>Achievement:</strong> STOC 2025 Best Paper Award</p>
+    </div>
+  </div>
+
+  <p>
+    The new algorithm achieves <strong>O(m log<sup>2/3</sup> n)</strong> runtime. 
+    That’s not just a minor tweak – it’s a fundamental breakthrough.
+  </p>
+
+  <h4>Why is this better?</h4>
+  <ul>
+    <li><code>log<sup>2/3</sup> n</code> grows slower than <code>log n</code>.</li>
+    <li>For very large graphs, this means significant savings.</li>
+  </ul>
+
+  <h4>Example:</h4>
+  <p>For a graph with 1000 nodes and 1000 edges:</p>
+  <ul>
+    <li>Dijkstra → ~10,970 operations</li>
+    <li>New algorithm → ~4,640 operations</li>
+  </ul>
+</div>
+
+
+        <div class="section">
+            <h2>🎯 Live Algorithm Comparison</h2>
+            
+            <div class="demo-controls">
+                <button class="demo-btn" onclick="startDijkstraDemo()">▶️ Run Dijkstra's Algorithm</button>
+                <button class="demo-btn" onclick="startTsinghuaDemo()">🚀 Run Tsinghua's Algorithm</button>
+                <button class="demo-btn" onclick="resetDemo()">🔄 Reset Graph</button>
+                <button class="demo-btn" onclick="generateNewGraph()">🎲 New Random Graph</button>
+            </div>
+
+            <div class="algorithm-demo">
+                <div class="demo-section">
+                    <h3>Dijkstra's Algorithm (Traditional)</h3>
+                    <div class="demo-graph" id="dijkstra-graph"></div>
+                    <div class="demo-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Nodes Processed:</span>
+                            <span class="stat-value" id="dijkstra-nodes">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Steps Taken:</span>
+                            <span class="stat-value" id="dijkstra-steps">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Processing Order:</span>
+                            <span class="stat-value">Sorted by distance</span>
+                        </div>
+                    </div>
+                    <div class="code-section">
+                        <h4>Code Execution:</h4>
+                        <pre class="live-code" id="dijkstra-code">
+// Dijkstra's Algorithm
+function dijkstra(graph, start) {
+    const distances = {};
+    const visited = new Set();
+    const queue = new PriorityQueue();
+    
+    // Initialize distances
+    for (let node in graph) {
+        distances[node] = Infinity;
+    }
+    distances[start] = 0;
+    queue.enqueue(start, 0);
+    
+    <span class="code-highlight" id="dijkstra-highlight">// Waiting to start...</span>
+}
+                        </pre>
+                    </div>
+                </div>
+
+                <div class="demo-section">
+                    <h3>Tsinghua's Algorithm (Revolutionary)</h3>
+                    <div class="demo-graph" id="tsinghua-graph"></div>
+                    <div class="demo-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Nodes Processed:</span>
+                            <span class="stat-value" id="tsinghua-nodes">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Steps Taken:</span>
+                            <span class="stat-value" id="tsinghua-steps">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Processing Order:</span>
+                            <span class="stat-value">Clustered, non-sorted</span>
+                        </div>
+                    </div>
+                    <div class="code-section">
+                        <h4>Code Execution:</h4>
+                        <pre class="live-code" id="tsinghua-code">
+// Tsinghua's Clustering Algorithm
+function tsinghuaSSP(graph, start) {
+    const layers = initializeLayers(start);
+    const clusters = new Map();
+    const influentialNodes = new Set();
+    
+    for (let layer of layers) {
+        // Cluster frontier nodes
+        const frontierClusters = 
+            clusterFrontierNodes(layer.frontier);
+        
+        <span class="code-highlight" id="tsinghua-highlight">// Waiting to start...</span>
+}
+                        </pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="breakthrough-points">
+                <div class="breakthrough-point">
+                    <h3>1. Node Clustering</h3>
+                    <p>Instead of examining every frontier node, the algorithm groups neighboring nodes into clusters and considers only one representative from each cluster.</p>
+                </div>
+                
+                <div class="breakthrough-point">
+                    <h3>2. Strategic Bellman-Ford Usage</h3>
+                    <p>Uses the Bellman-Ford algorithm for just a few steps to scout ahead and identify influential nodes (like major highway intersections).</p>
+                </div>
+                
+                <div class="breakthrough-point">
+                    <h3>3. Layer-Based Processing</h3>
+                    <p>Slices the graph into layers moving outward from source, but doesn't process nodes in strict distance order, avoiding the sorting constraint.</p>
+                </div>
+                
+                <div class="breakthrough-point">
+                    <h3>4. Non-Random Approach</h3>
+                    <p>Graduate student Xiao Mao contributed a deterministic method, eliminating the need for randomized components.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Performance Comparison</h2>
+            <div class="performance-chart">
+                <div class="bar" style="height: 200px;" data-label="Dijkstra (1984)">200</div>
+                <div class="bar" style="height: 180px;" data-label="Previous Best">180</div>
+                <div class="bar new-bar" style="height: 150px;" data-label="Tsinghua (2025)">150</div>
+            </div>
+            <p style="text-align: center; margin-top: 40px;"><em>Relative runtime comparison on sparse graphs (lower is better)</em></p>
+        </div>
+
+        <div class="section">
+            <h2>🗓️ Research Timeline</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h4>1956</h4>
+                        <p>Edsger Dijkstra introduces the classic shortest path algorithm</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h4>1984</h4>
+                        <p>Tarjan improves Dijkstra's algorithm to hit the sorting barrier limit</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h4>2021</h4>
+                        <p>Professor Ran Duan begins developing the clustering-based approach</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h4>2022-2023</h4>
+                        <p>Team develops partial solution for undirected graphs</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h4>2024</h4>
+                        <p>Xiao Mao joins the team, breakthrough achieved for directed graphs</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h4>2025</h4>
+                        <p>Paper wins Best Paper Award at STOC 2025 conference</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🌟 Real-World Applications</h2>
+            <div class="breakthrough-points">
+                <div class="breakthrough-point">
+                    <h3>🚁 Drone Navigation</h3>
+                    <p>Faster pathfinding for autonomous drone swarms and delivery systems</p>
+                </div>
+                
+                <div class="breakthrough-point">
+                    <h3>📡 Telecommunications</h3>
+                    <p>Improved routing algorithms for network packet delivery and traffic optimization</p>
+                </div>
+                
+                <div class="breakthrough-point">
+                    <h3>🚨 Emergency Response</h3>
+                    <p>Rapid route calculation for disaster evacuation and emergency services</p>
+                </div>
+                
+                <div class="breakthrough-point">
+                    <h3>🚚 Logistics & Delivery</h3>
+                    <p>Enhanced efficiency for delivery routing and supply chain optimization</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🧮 Technical Details</h2>
+            <div class="code-block">
+// Simplified concept of the new approach
+function tsinghuaShortestPath(graph, source) {
+    // 1. Initialize layers moving outward from source
+    let layers = initializeLayers(source);
+    
+    // 2. For each layer, cluster frontier nodes
+    for (let layer of layers) {
+        let clusters = clusterFrontierNodes(layer.frontier);
+        
+        // 3. Use Bellman-Ford to identify influential nodes
+        let influentialNodes = identifyInfluentialNodes(clusters);
+        
+        // 4. Process influential nodes first, then others
+        processNodes(influentialNodes, layer);
+        processRemainingNodes(layer);
+    }
+    
+    return shortestPaths;
+}
+            </div>
+            
+            <div class="highlight">
+                <strong>💡 Key Insight:</strong> The algorithm doesn't always find nodes in order of increasing distance, which allows it to bypass the sorting barrier that has constrained shortest path algorithms for 40 years.
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔬 Research Team</h2>
+            <p><strong>Lead Researcher:</strong> Professor Ran Duan, Institute for Interdisciplinary Information Sciences (IIIS), Tsinghua University</p>
+            <p><strong>Key Contributor:</strong> Xiao Mao, Graduate Student, Stanford University</p>
+            <p><strong>Recognition:</strong> STOC 2025 Best Paper Award</p>
+            <p><strong>Publication:</strong> "Breaking the Sorting Barrier for Directed Single-Source Shortest Paths"</p>
+            
+            <div class="highlight">
+                <strong>🎓 Academic Impact:</strong> This breakthrough has been called "an amazing result" by Princeton's Robert Tarjan and represents the first major advance in shortest path algorithms in decades.
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🚀 Future Implications</h2>
+            <p>With the sorting barrier finally broken, this opens up new possibilities for even faster algorithms. As Princeton's Robert Tarjan noted: <em>"Being an optimist, I would not be surprised if you could take it down even further. I certainly don't think this is the last step in the process."</em></p>
+            
+            <p>The algorithm's runtime isn't close to any known fundamental limit, suggesting there's room for further improvements. The research team plans to explore streamlining the algorithm to make it even faster.</p>
+            
+            <div class="highlight">
+                <strong>🌍 Global Impact:</strong> This breakthrough could revolutionize how we approach routing problems in everything from internet traffic to autonomous vehicles, potentially saving millions of computational hours worldwide.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Graph data and visualization
+        let graphData = {
+            nodes: {},
+            edges: {}
+        };
+
+        let dijkstraState = {
+            visited: new Set(),
+            frontier: new Set(),
+            distances: {},
+            current: null,
+            step: 0,
+            nodeCount: 0
+        };
+
+        let tsinghuaState = {
+            visited: new Set(),
+            frontier: new Set(),
+            clusters: new Map(),
+            distances: {},
+            current: null,
+            step: 0,
+            nodeCount: 0,
+            layers: []
+        };
+
+        // Initialize graph
+        function generateRandomGraph() {
+            const nodeCount = 8;
+            const nodes = {};
+            const edges = {};
+            
+            // Create nodes with random positions
+            const nodeNames = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+            for (let i = 0; i < nodeCount; i++) {
+                nodes[nodeNames[i]] = {
+                    x: 50 + (i % 3) * 120 + Math.random() * 40,
+                    y: 50 + Math.floor(i / 3) * 80 + Math.random() * 30,
+                    id: nodeNames[i]
+                };
+            }
+            
+            // Create random edges with weights
+            const connections = [
+                ['A', 'B', 4], ['A', 'C', 2], ['B', 'C', 1], ['B', 'D', 5],
+                ['C', 'D', 8], ['C', 'E', 10], ['D', 'E', 2], ['D', 'F', 6],
+                ['E', 'F', 2], ['E', 'G', 3], ['F', 'G', 1], ['F', 'H', 4],
+                ['G', 'H', 2]
+            ];
+            
+            connections.forEach(([from, to, weight]) => {
+                const edgeId = from + to;
+                edges[edgeId] = { from, to, weight };
+            });
+            
+            graphData = { nodes, edges };
+            renderGraph('dijkstra-graph');
+            renderGraph('tsinghua-graph');
+        }
+
+        function renderGraph(containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            // Render edges
+            Object.values(graphData.edges).forEach(edge => {
+                const fromNode = graphData.nodes[edge.from];
+                const toNode = graphData.nodes[edge.to];
+                
+                const dx = toNode.x - fromNode.x;
+                const dy = toNode.y - fromNode.y;
+                const length = Math.sqrt(dx * dx + dy * dy);
+                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                
+                const edgeEl = document.createElement('div');
+                edgeEl.className = 'graph-edge';
+                edgeEl.id = `${containerId}-edge-${edge.from}${edge.to}`;
+                edgeEl.style.left = `${fromNode.x + 15}px`;
+                edgeEl.style.top = `${fromNode.y + 15}px`;
+                edgeEl.style.width = `${length}px`;
+                edgeEl.style.transform = `rotate(${angle}deg)`;
+                container.appendChild(edgeEl);
+                
+                // Edge weight label
+                const weightEl = document.createElement('div');
+                weightEl.className = 'edge-weight';
+                weightEl.textContent = edge.weight;
+                weightEl.style.left = `${fromNode.x + dx/2 + 5}px`;
+                weightEl.style.top = `${fromNode.y + dy/2 - 10}px`;
+                container.appendChild(weightEl);
+            });
+            
+            // Render nodes
+            Object.values(graphData.nodes).forEach(node => {
+                const nodeEl = document.createElement('div');
+                nodeEl.className = 'graph-node unvisited';
+                nodeEl.id = `${containerId}-node-${node.id}`;
+                nodeEl.textContent = node.id;
+                nodeEl.style.left = `${node.x}px`;
+                nodeEl.style.top = `${node.y}px`;
+                container.appendChild(nodeEl);
+            });
+            
+            // Mark source node
+            const sourceNode = document.getElementById(`${containerId}-node-A`);
+            if (sourceNode) {
+                sourceNode.className = 'graph-node source';
+            }
+        }
+
+        function updateCodeHighlight(algorithm, text) {
+            const highlightEl = document.getElementById(`${algorithm}-highlight`);
+            if (highlightEl) {
+                highlightEl.textContent = text;
+            }
+        }
+
+        function updateStats(algorithm, nodes, steps) {
+            document.getElementById(`${algorithm}-nodes`).textContent = nodes;
+            document.getElementById(`${algorithm}-steps`).textContent = steps;
+        }
+
+        // Dijkstra's Algorithm Implementation
+        async function startDijkstraDemo() {
+            resetDemo();
+            
+            const state = dijkstraState;
+            state.distances = {};
+            state.visited = new Set();
+            state.frontier = new Set();
+            
+            // Initialize distances
+            Object.keys(graphData.nodes).forEach(node => {
+                state.distances[node] = node === 'A' ? 0 : Infinity;
+            });
+            
+            state.frontier.add('A');
+            state.current = 'A';
+            
+            updateCodeHighlight('dijkstra', '// Starting from source node A');
+            
+            while (state.frontier.size > 0) {
+                // Find minimum distance node in frontier
+                let minNode = null;
+                let minDist = Infinity;
+                
+                for (let node of state.frontier) {
+                    if (state.distances[node] < minDist) {
+                        minDist = state.distances[node];
+                        minNode = node;
+                    }
+                }
+                
+                state.current = minNode;
+                state.frontier.delete(minNode);
+                state.visited.add(minNode);
+                state.step++;
+                state.nodeCount++;
+                
+                // Highlight current processing
+                const nodeEl = document.getElementById(`dijkstra-graph-node-${minNode}`);
+                nodeEl.className = 'graph-node processing';
+                
+                updateCodeHighlight('dijkstra', `// Processing node ${minNode} (distance: ${minDist})`);
+                updateStats('dijkstra', state.nodeCount, state.step);
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Process neighbors
+                Object.values(graphData.edges).forEach(edge => {
+                    let neighbor = null;
+                    if (edge.from === minNode) neighbor = edge.to;
+                    else if (edge.to === minNode) neighbor = edge.from;
+                    
+                    if (neighbor && !state.visited.has(neighbor)) {
+                        const newDist = state.distances[minNode] + edge.weight;
+                        
+                        if (newDist < state.distances[neighbor]) {
+                            state.distances[neighbor] = newDist;
+                            state.frontier.add(neighbor);
+                            
+                            // Highlight edge
+                            const edgeEl = document.getElementById(`dijkstra-graph-edge-${edge.from}${edge.to}`);
+                            if (edgeEl) edgeEl.className = 'graph-edge active';
+                            
+                            // Update neighbor node
+                            const neighborEl = document.getElementById(`dijkstra-graph-node-${neighbor}`);
+                            neighborEl.className = 'graph-node frontier';
+                        }
+                    }
+                });
+                
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Mark as visited
+                nodeEl.className = 'graph-node visited';
+                updateCodeHighlight('dijkstra', `// Node ${minNode} processed, updating neighbors`);
+            }
+            
+            updateCodeHighlight('dijkstra', '// Algorithm completed - all nodes processed');
+        }
+
+        // Tsinghua's Algorithm Implementation
+        async function startTsinghuaDemo() {
+            resetDemo();
+            
+            const state = tsinghuaState;
+            state.distances = {};
+            state.visited = new Set();
+            state.frontier = new Set();
+            state.clusters = new Map();
+            
+            // Initialize
+            Object.keys(graphData.nodes).forEach(node => {
+                state.distances[node] = node === 'A' ? 0 : Infinity;
+            });
+            
+            state.frontier.add('A');
+            state.current = 'A';
+            
+            updateCodeHighlight('tsinghua', '// Starting with clustering approach');
+            
+            // Create initial layers
+            let currentLayer = new Set(['A']);
+            let nextLayer = new Set();
+            
+            while (currentLayer.size > 0) {
+                // Cluster nodes in current frontier
+                const clusters = clusterFrontierNodes(currentLayer);
+                
+                updateCodeHighlight('tsinghua', `// Clustering ${currentLayer.size} frontier nodes into ${clusters.length} clusters`);
+                
+                // Highlight clusters
+                clusters.forEach((cluster, index) => {
+                    cluster.forEach(node => {
+                        const nodeEl = document.getElementById(`tsinghua-graph-node-${node}`);
+                        if (nodeEl && !state.visited.has(node)) {
+                            nodeEl.className = 'graph-node clustered';
+                        }
+                    });
+                });
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Use Bellman-Ford to identify influential nodes
+                const influentialNodes = identifyInfluentialNodes(clusters);
+                
+                updateCodeHighlight('tsinghua', `// Identified ${influentialNodes.length} influential nodes using Bellman-Ford`);
+                
+                // Process influential nodes first
+                for (let node of influentialNodes) {
+                    if (!state.visited.has(node)) {
+                        state.visited.add(node);
+                        state.step++;
+                        state.nodeCount++;
+                        
+                        const nodeEl = document.getElementById(`tsinghua-graph-node-${node}`);
+                        nodeEl.className = 'graph-node processing';
+                        
+                        updateStats('tsinghua', state.nodeCount, state.step);
+                        await new Promise(resolve => setTimeout(resolve, 800));
+                        
+                        // Process neighbors
+                        Object.values(graphData.edges).forEach(edge => {
+                            let neighbor = null;
+                            if (edge.from === node) neighbor = edge.to;
+                            else if (edge.to === node) neighbor = edge.from;
+                            
+                            if (neighbor && !state.visited.has(neighbor)) {
+                                const newDist = state.distances[node] + edge.weight;
+                                
+                                if (newDist < state.distances[neighbor]) {
+                                    state.distances[neighbor] = newDist;
+                                    nextLayer.add(neighbor);
+                                    
+                                    const edgeEl = document.getElementById(`tsinghua-graph-edge-${edge.from}${edge.to}`);
+                                    if (edgeEl) edgeEl.className = 'graph-edge active';
+                                    
+                                    const neighborEl = document.getElementById(`tsinghua-graph-node-${neighbor}`);
+                                    neighborEl.className = 'graph-node frontier';
+                                }
+                            }
+                        });
+                        
+                        nodeEl.className = 'graph-node visited';
+                    }
+                }
+                
+                // Process remaining nodes in clusters
+                clusters.forEach(cluster => {
+                    cluster.forEach(node => {
+                        if (!state.visited.has(node)) {
+                            nextLayer.add(node);
+                        }
+                    });
+                });
+                
+                currentLayer = nextLayer;
+                nextLayer = new Set();
+                
+                updateCodeHighlight('tsinghua', `// Moving to next layer with ${currentLayer.size} nodes`);
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            updateCodeHighlight('tsinghua', '// Algorithm completed - sorting barrier broken!');
+        }
+
+        function clusterFrontierNodes(frontier) {
+            const clusters = [];
+            const processed = new Set();
+            
+            for (let node of frontier) {
+                if (!processed.has(node)) {
+                    const cluster = [node];
+                    processed.add(node);
+                    
+                    // Add nearby unprocessed nodes to cluster
+                    Object.values(graphData.edges).forEach(edge => {
+                        let neighbor = null;
+                        if (edge.from === node && frontier.has(edge.to) && !processed.has(edge.to)) {
+                            neighbor = edge.to;
+                        } else if (edge.to === node && frontier.has(edge.from) && !processed.has(edge.from)) {
+                            neighbor = edge.from;
+                        }
+                        
+                        if (neighbor && edge.weight <= 3) { // Cluster nearby nodes
+                            cluster.push(neighbor);
+                            processed.add(neighbor);
+                        }
+                    });
+                    
+                    clusters.push(cluster);
+                }
+            }
+            
+            return clusters;
+        }
+
+        function identifyInfluentialNodes(clusters) {
+            // Simplified influential node identification
+            const influential = [];
+            
+            clusters.forEach(cluster => {
+                // Pick node with most connections or lowest distance
+                let bestNode = cluster[0];
+                let maxConnections = 0;
+                
+                cluster.forEach(node => {
+                    let connections = 0;
+                    Object.values(graphData.edges).forEach(edge => {
+                        if (edge.from === node || edge.to === node) connections++;
+                    });
+                    
+                    if (connections > maxConnections) {
+                        maxConnections = connections;
+                        bestNode = node;
+                    }
+                });
+                
+                influential.push(bestNode);
+            });
+            
+            return influential;
+        }
+
+        function resetDemo() {
+            dijkstraState = {
+                visited: new Set(),
+                frontier: new Set(),
+                distances: {},
+                current: null,
+                step: 0,
+                nodeCount: 0
+            };
+            
+            tsinghuaState = {
+                visited: new Set(),
+                frontier: new Set(),
+                clusters: new Map(),
+                distances: {},
+                current: null,
+                step: 0,
+                nodeCount: 0,
+                layers: []
+            };
+            
+            updateStats('dijkstra', 0, 0);
+            updateStats('tsinghua', 0, 0);
+            updateCodeHighlight('dijkstra', '// Waiting to start...');
+            updateCodeHighlight('tsinghua', '// Waiting to start...');
+            
+            renderGraph('dijkstra-graph');
+            renderGraph('tsinghua-graph');
+        }
+
+        function generateNewGraph() {
+            generateRandomGraph();
+            resetDemo();
+        }
+
+        // Add some interactive animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize with default graph
+            generateRandomGraph();
+            
+            // Animate bars on scroll
+            const observerOptions = {
+                threshold: 0.5,
+                rootMargin: '0px 0px -100px 0px'
+            };
+
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.transform = 'scale(1.05)';
+                        setTimeout(() => {
+                            entry.target.style.transform = 'scale(1)';
+                        }, 300);
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all sections
+            document.querySelectorAll('.section').forEach(section => {
+                observer.observe(section);
+            });
+
+            // Add click effects to algorithm boxes
+            document.querySelectorAll('.algorithm-box').forEach(box => {
+                box.addEventListener('click', function() {
+                    this.style.transform = 'scale(1.1) rotate(2deg)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1) rotate(0deg)';
+                    }, 200);
+                });
+            });
+
+            // Animate timeline items
+            document.querySelectorAll('.timeline-item').forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateY(50px)';
+                
+                setTimeout(() => {
+                    item.style.transition = 'all 0.6s ease';
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+        });
+    </script>
+</body>
+</html>
